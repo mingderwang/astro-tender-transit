@@ -1,3 +1,16 @@
+# Astro + Elysia + Swagger + Vercel
+
+```sh
+bun dev
+```
+
+and surf
+
+```
+open http://localhost:4321/swagger
+```
+
+
 # Astro Starter Kit: Minimal
 
 ```sh
