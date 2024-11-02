@@ -1,19 +1,33 @@
 // pages/[...slugs].ts
 import { Elysia, t } from "elysia";
 import { swagger } from "@elysiajs/swagger";
-import { generateAuthenticationOptions } from "@simplewebauthn/server";
-import type { GenerateRegistrationOptionsOpts } from "@simplewebauthn/server";
-import { base64UrlEncode } from '../utils'
+
+import {
+  // Authentication
+  generateAuthenticationOptions,
+  // Registration
+  generateRegistrationOptions,
+  verifyAuthenticationResponse,
+  verifyRegistrationResponse,
+} from "@simplewebauthn/server";
+import type {
+  GenerateAuthenticationOptionsOpts,
+  GenerateRegistrationOptionsOpts,
+  VerifiedAuthenticationResponse,
+  VerifiedRegistrationResponse,
+  VerifyAuthenticationResponseOpts,
+  VerifyRegistrationResponseOpts,
+} from "@simplewebauthn/server";
+
+import { base64UrlEncode } from "../utils";
 
 type Store = {
   counter: number;
 };
 
-const {
-  RP_ID = 'localhost',
-} = process.env;
+const { RP_ID = "localhost" } = process.env;
 const rpID = RP_ID;
-const username = 'ming';
+const username = "ming";
 const devices: any = [];
 
 function generateChallenge() {
@@ -23,11 +37,11 @@ function generateChallenge() {
 }
 
 const opts: GenerateRegistrationOptionsOpts = {
-  rpName: 'SimpleWebAuthn Example',
+  rpName: "SimpleWebAuthn Example",
   rpID,
   userName: username,
   timeout: 60000,
-  attestationType: 'none',
+  attestationType: "none",
   challenge: generateChallenge(),
   /**
    * Passing in a user's list of already-registered authenticator IDs here prevents users from
@@ -37,17 +51,17 @@ const opts: GenerateRegistrationOptionsOpts = {
    */
   excludeCredentials: devices.map((dev: any) => ({
     id: dev.credentialID,
-    type: 'public-key',
+    type: "public-key",
     transports: dev.transports,
   })),
   authenticatorSelection: {
-    residentKey: 'discouraged',
+    residentKey: "discouraged",
     /**
      * Wondering why user verification isn't required? See here:
      *
      * https://passkeys.dev/docs/use-cases/bootstrapping/#a-note-about-user-verification
      */
-    userVerification: 'preferred',
+    userVerification: "preferred",
   },
   /**
    * Support the two most common algorithms: ES256, and RS256
@@ -56,7 +70,7 @@ const opts: GenerateRegistrationOptionsOpts = {
 };
 
 const app = new Elysia()
-  .state('counter', 0)
+  .state("counter", 0)
   .get("/count", ({ store }) => store.counter++)
   .get("passkey/challenge", () => {
     const challenge = crypto.getRandomValues(new Uint8Array(32));
@@ -75,8 +89,14 @@ const app = new Elysia()
     const options = generateAuthenticationOptions(opts);
     return options;
   })
+  .post("/verify-registration", ({ body, error }) => {
+
+  })
+  .post("/verify-authentication", ({ body, error }) => {
+    
+  })
   .use(swagger())
-  .patch(
+  .post(
     "/user/profile",
     ({ body, error }) => {
       if (body.age < 18) return error(400, "Oh no");
@@ -91,7 +111,7 @@ const app = new Elysia()
         age: t.Number(),
       }),
     }
-  )
+  );
 
 export type App = typeof app;
 
